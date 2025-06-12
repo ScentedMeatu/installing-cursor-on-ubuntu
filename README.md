@@ -12,10 +12,10 @@ This Bash script installs Cursor AI IDE as an AppImage, sets up its desktop entr
 
 ---
 
-### Installation
+### Installation - Copy paste every command below on your terminal
 
 1. **Save the script**  
-   Create (or overwrite) `/usr/local/bin/cursor-installer.sh`:
+   Copy paste below commad:
 
    ```bash
    sudo tee /usr/local/bin/cursor-installer.sh >/dev/null << 'EOF'
