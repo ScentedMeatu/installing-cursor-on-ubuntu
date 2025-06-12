@@ -86,7 +86,7 @@ esac
 3. **Make the script executable**
 
    ```bash
-   sudo chmod +x /usr/local/bin/cursor-installer.sh
+   sudo chmod +x ~/cursor-installer.sh
    ```
 
 ---
