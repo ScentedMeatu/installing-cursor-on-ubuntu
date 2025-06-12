@@ -130,7 +130,7 @@ This Bash script installs Cursor AI IDE as an AppImage, sets up its desktop entr
   * Downloads the icon to `/opt/cursor.png`
   * Creates (or replaces) the desktop file so Cursor appears in your application menu
     
-### Next Time when cursor asks for update
+### Next time when cursor asks for update
 
 * **Check for & apply updates:**
 
