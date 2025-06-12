@@ -1,6 +1,6 @@
 ## Cursor Installer & Updater Script
 
-This Bash script installs Cursor AI IDE as an AppImage, sets up its desktop entry, and can auto-update itself when new releases are available. The download URL has been updated to point at the stable release on `cursor.com`.
+This Bash script installs Cursor AI IDE as an AppImage, sets up its desktop entry, and can uninstall. The download URL has been updated to point at the stable release on `cursor.com`.
 
 ---
 
@@ -14,103 +14,76 @@ This Bash script installs Cursor AI IDE as an AppImage, sets up its desktop entr
 
 ### Installation - Copy paste every command below on your terminal
 
-1. **Save the script**  
-   Copy paste below commad:
+1. **Save the script**
+save it as cursor-installer.sh
+```
+#!/bin/bash
+# cursor-manager.sh
+# Usage:
+#   sudo ./cursor-manager.sh install   — install Cursor AppImage & desktop entry
+#   sudo ./cursor-manager.sh uninstall — remove Cursor AppImage & desktop entry
 
-   ```bash
-   sudo tee /usr/local/bin/cursor-installer.sh >/dev/null << 'EOF'
-   #!/bin/bash
-   set -euo pipefail
-   SCRIPT_NAME="$(basename "$0")"
-   APPIMAGE_PATH="/opt/cursor.appimage"
-   ICON_PATH="/opt/cursor.png"
-   DESKTOP_ENTRY_PATH="/usr/share/applications/cursor.desktop"
-   # Updated stable download endpoint
-   CURSOR_URL="https://www.cursor.com/download/stable/linux-x64"
-   ICON_URL="https://custom.typingmind.com/assets/models/cursor.png"
+set -euo pipefail
 
-   usage() {
-     cat <<EOM
-   Usage: $SCRIPT_NAME [install|update]
+APPIMAGE_PATH="/opt/cursor.appimage"
+ICON_PATH="/opt/cursor.png"
+DESKTOP_ENTRY_PATH="/usr/share/applications/cursor.desktop"
+CURSOR_URL="https://www.cursor.com/download/stable/linux-x64"
+ICON_URL="https://custom.typingmind.com/assets/models/cursor.png"
 
-     install  – remove old desktop entry, install AppImage & icon, create .desktop
-     update   – download a new AppImage only if the remote is newer, refresh desktop entry
-   EOM
-     exit 1
-   }
+install_cursor() {
+  echo "→ Installing Cursor AI IDE…"
 
-   remove_old_desktop() {
-     if [ -f "$DESKTOP_ENTRY_PATH" ]; then
-       echo "→ Removing existing desktop entry"
-       sudo rm -f "$DESKTOP_ENTRY_PATH"
-     fi
-   }
+  # ensure /opt exists
+  sudo mkdir -p /opt
 
-   download_appimage_if_newer() {
-     echo "→ Checking for Cursor update…"
-     sudo curl -sSL -z "$APPIMAGE_PATH" "$CURSOR_URL" -o "$APPIMAGE_PATH.new" \
-       && sudo chmod +x "$APPIMAGE_PATH.new" \
-       && sudo mv "$APPIMAGE_PATH.new" "$APPIMAGE_PATH" \
-       && echo "✔️  Updated Cursor AppImage"
-   }
+  # download AppImage
+  echo "  • Downloading AppImage"
+  sudo curl -sSL "$CURSOR_URL" -o "$APPIMAGE_PATH"
+  sudo chmod +x "$APPIMAGE_PATH"
 
-   download_icon() {
-     echo "→ Downloading Cursor icon"
-     sudo curl -sSL "$ICON_URL" -o "$ICON_PATH"
-   }
+  # download icon
+  echo "  • Downloading icon"
+  sudo curl -sSL "$ICON_URL" -o "$ICON_PATH"
 
-   create_desktop_entry() {
-     echo "→ Creating desktop entry"
-     sudo bash -c "cat > '$DESKTOP_ENTRY_PATH'" <<EOI
-   [Desktop Entry]
-   Name=Cursor AI IDE
-   Exec=$APPIMAGE_PATH
-   Icon=$ICON_PATH
-   Type=Application
-   Categories=Development;
-   EOI
-     sudo update-desktop-database >/dev/null 2>&1 || true
-   }
+  # create desktop entry
+  echo "  • Creating desktop entry"
+  sudo tee "$DESKTOP_ENTRY_PATH" >/dev/null <<EOF
+[Desktop Entry]
+Name=Cursor AI IDE
+Exec=$APPIMAGE_PATH
+Icon=$ICON_PATH
+Type=Application
+Categories=Development;
+EOF
 
-   install() {
-     remove_old_desktop
-     if [ ! -f "$APPIMAGE_PATH" ]; then
-       echo "→ Installing Cursor AI IDE..."
-       if ! command -v curl &>/dev/null; then
-         echo "  • curl not found → installing"
-         sudo apt-get update -qq
-         sudo apt-get install -y curl
-       fi
-       echo "  • Downloading AppImage"
-       sudo curl -sSL "$CURSOR_URL" -o "$APPIMAGE_PATH"
-       sudo chmod +x "$APPIMAGE_PATH"
-       download_icon
-       create_desktop_entry
-       echo "🎉  Installation complete!"
-     else
-       echo "⚠️  Cursor is already installed. Use '$SCRIPT_NAME update' to check for updates."
-     fi
-   }
+  echo "✔️  Cursor installed. Find it in your application menu."
+}
 
-   update() {
-     remove_old_desktop
-     if [ ! -f "$APPIMAGE_PATH" ]; then
-       echo "❌  No existing installation found. Run '$SCRIPT_NAME install' first."
-       exit 1
-     fi
-     download_appimage_if_newer
-     download_icon
-     create_desktop_entry
-   }
+uninstall_cursor() {
+  echo "→ Uninstalling Cursor AI IDE…"
 
-   case "${1:-}" in
-     install) install ;;
-     update)  update  ;;
-     *)       usage ;;
-   esac
-   EOF
+  # remove files
+  sudo rm -f "$APPIMAGE_PATH" "$ICON_PATH" "$DESKTOP_ENTRY_PATH"
+  sudo rm -f "${DESKTOP_ENTRY_PATH%.*}.cache" || true
 
-2. **Make the script executable**
+  echo "✔️  Cursor removed."
+}
+
+case "${1:-}" in
+  install)
+    install_cursor
+    ;;
+  uninstall)
+    uninstall_cursor
+    ;;
+  *)
+    echo "Usage: sudo $0 {install|uninstall}"
+    exit 1
+    ;;
+esac
+```
+3. **Make the script executable**
 
    ```bash
    sudo chmod +x /usr/local/bin/cursor-installer.sh
@@ -123,43 +96,18 @@ This Bash script installs Cursor AI IDE as an AppImage, sets up its desktop entr
 * **Initial install:**
 
   ```bash
-  sudo /usr/local/bin/cursor-installer.sh install
+  sudo ~/cursor-installer.sh install
   ```
 
   * Installs the AppImage to `/opt/cursor.appimage`
   * Downloads the icon to `/opt/cursor.png`
   * Creates (or replaces) the desktop file so Cursor appears in your application menu
-    
-### Next time when cursor asks for update
 
-* **Check for & apply updates:**
+* **Uninstall:**
 
   ```bash
-  sudo /usr/local/bin/cursor-installer.sh update
+  sudo ~/cursor-installer.sh uninstall
   ```
-
-  * Uses `curl -z` to only re-download if a newer AppImage exists
-  * Always refreshes icon and desktop entry
-
----
-
-### Automating with Cron
-
-To auto-check for Cursor updates daily at 4 AM, add this to root’s crontab:
-
-```cron
-0 4 * * * /usr/local/bin/cursor-installer.sh update >> /var/log/cursor-update.log 2>&1
-```
-
-1. Edit root’s cron:
-
-   ```bash
-   sudo crontab -e
-   ```
-2. Paste the above line and save.
-
-The script will run each day, logging output to `/var/log/cursor-update.log`, and only download a new AppImage when one’s available.
-
 ---
 
 Feel free to adjust paths, URLs, or schedule to suit your environment.
