@@ -83,7 +83,7 @@ case "${1:-}" in
     ;;
 esac
 ```
-3. **Make the script executable**
+2. **Make the script executable**
 
    ```bash
    sudo chmod +x ~/cursor-installer.sh
